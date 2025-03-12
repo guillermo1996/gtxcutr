@@ -1,4 +1,4 @@
-Package: txcutr
+Package: gtxcutr
 Title: Transcriptome CUTteR
 Description: Various mRNA sequencing library preparation methods generate 
     sequencing reads specifically from the transcript ends. Analyses that focus 
@@ -7,19 +7,27 @@ Description: Various mRNA sequencing library preparation methods generate
     pseudo-alignment stage, as well as in downstream analysis. This package 
     implements some convenience methods for readily generating such truncated 
     annotations and their corresponding sequences.
-Version: 0.99.1
-Date: 2021-10-01
-Authors@R: 
+Version: 0.100.1
+Date: 2025-03-11
+Authors@R: c(
     person(given = "Mervin",
            family = "Fansler",
            role = c("aut", "cre"),
            email = "mef3005@med.cornell.edu",
-           comment = c(ORCID = "0000-0002-4108-4218"))
+           comment = c(ORCID = "0000-0002-4108-4218")), 
+    person(given = "Guillermo", 
+           family = "Rocamora-Perez",
+           role = c("ctb"),
+           email = "guillermorocamora@gmail.com",
+           comment = c(ORCID = "0000-0002-4795-3648")))
 License: GPL-3
 Encoding: UTF-8
 Depends:
     R (>= 4.1.0)
 Imports:
+    dplyr,
+    tibble,
+    magrittr,
     AnnotationDbi,
     GenomicFeatures,
     IRanges,
@@ -33,7 +41,7 @@ Imports:
     methods,
     utils
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.2
 biocViews: 
     Alignment,
     Annotation,

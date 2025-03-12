@@ -16,6 +16,8 @@ Badge](https://anaconda.org/merv/r-txcutr/badges/version.svg)](https://anaconda.
 
 ## Overview
 
+Adaptation of txcutr by Guillermo Rocamora Pérez. Work in progress.
+
 Various mRNA sequencing library preparation methods generate sequencing
 reads from the transcript ends. Quantification of isoform usage can be
 improved by using truncated versions of transcriptome annotations when
@@ -70,10 +72,10 @@ install this in your *base* environment!**
 
 A typical workflow for `txcutr` involves
 
--   loading an existing annotation as `TxDb` object
--   truncating the annotation
--   exporting the truncated annotation (GTF)
--   exporting supporting files (FASTA, merge TSV)
+- loading an existing annotation as `TxDb` object
+- truncating the annotation
+- exporting the truncated annotation (GTF)
+- exporting supporting files (FASTA, merge TSV)
 
 ``` r
 library(rtracklayer)
@@ -107,20 +109,19 @@ Please run this yourself to check for any updates on how to cite
 **txcutr**.
 
 ``` r
-print(citation('txcutr'), bibtex = TRUE)
+print(citation('gtxcutr'), bibtex = TRUE)
+#> To cite package 'gtxcutr' in publications use:
 #> 
-#> To cite package 'txcutr' in publications use:
-#> 
-#>   Mervin Fansler (2021). txcutr: Transcriptome CUTteR. R package
-#>   version 0.99.1.
+#>   Fansler M (2025). _gtxcutr: Transcriptome CUTteR - Modded by
+#>   Guillermo R._. R package version 0.100.1.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
 #>   @Manual{,
-#>     title = {txcutr: Transcriptome CUTteR},
+#>     title = {gtxcutr: Transcriptome CUTteR - Modded by Guillermo R.},
 #>     author = {Mervin Fansler},
-#>     year = {2021},
-#>     note = {R package version 0.99.1},
+#>     year = {2025},
+#>     note = {R package version 0.100.1},
 #>   }
 ```
 
@@ -136,27 +137,27 @@ contributing to this project, you agree to abide by its terms.
 
 ## Development tools
 
--   Continuous code testing is possible thanks to [GitHub
-    actions](https://www.tidyverse.org/blog/2020/04/usethis-1-6-0/)
-    through *[usethis](https://CRAN.R-project.org/package=usethis)*,
-    *[remotes](https://CRAN.R-project.org/package=remotes)*, and
-    *[rcmdcheck](https://CRAN.R-project.org/package=rcmdcheck)*
-    customized to use [Bioconductor’s docker
-    containers](https://www.bioconductor.org/help/docker/) and
-    *[BiocCheck](https://bioconductor.org/packages/3.13/BiocCheck)*.
--   Code coverage assessment is possible thanks to
-    [codecov](https://codecov.io/gh) and
-    *[covr](https://CRAN.R-project.org/package=covr)*.
--   The [documentation website](http://mfansler.github.io/txcutr) is
-    automatically updated thanks to
-    *[pkgdown](https://CRAN.R-project.org/package=pkgdown)*.
--   The code is styled automatically thanks to
-    *[styler](https://CRAN.R-project.org/package=styler)*.
--   The documentation is formatted thanks to
-    *[devtools](https://CRAN.R-project.org/package=devtools)* and
-    *[roxygen2](https://CRAN.R-project.org/package=roxygen2)*.
+- Continuous code testing is possible thanks to [GitHub
+  actions](https://www.tidyverse.org/blog/2020/04/usethis-1-6-0/)
+  through *[usethis](https://CRAN.R-project.org/package=usethis)*,
+  *[remotes](https://CRAN.R-project.org/package=remotes)*, and
+  *[rcmdcheck](https://CRAN.R-project.org/package=rcmdcheck)* customized
+  to use [Bioconductor’s docker
+  containers](https://www.bioconductor.org/help/docker/) and
+  *[BiocCheck](https://bioconductor.org/packages/3.18/BiocCheck)*.
+- Code coverage assessment is possible thanks to
+  [codecov](https://codecov.io/gh) and
+  *[covr](https://CRAN.R-project.org/package=covr)*.
+- The [documentation website](http://mfansler.github.io/txcutr) is
+  automatically updated thanks to
+  *[pkgdown](https://CRAN.R-project.org/package=pkgdown)*.
+- The code is styled automatically thanks to
+  *[styler](https://CRAN.R-project.org/package=styler)*.
+- The documentation is formatted thanks to
+  *[devtools](https://CRAN.R-project.org/package=devtools)* and
+  *[roxygen2](https://CRAN.R-project.org/package=roxygen2)*.
 
 For more details, check the `dev` directory.
 
 This package was developed using
-*[biocthis](https://bioconductor.org/packages/3.13/biocthis)*.
+*[biocthis](https://bioconductor.org/packages/3.18/biocthis)*.

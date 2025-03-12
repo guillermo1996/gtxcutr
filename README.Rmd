@@ -24,6 +24,8 @@ knitr::opts_chunk$set(
 
 ## Overview
 
+Adaptation of txcutr by Guillermo Rocamora Pérez. Work in progress.
+
 Various mRNA sequencing library preparation methods generate sequencing reads 
 from the transcript ends. Quantification of isoform usage can be improved by 
 using truncated versions of transcriptome annotations when assigning such reads 
@@ -105,8 +107,8 @@ exportMergeTable(txdb_w500, minDistance=200,
 Below is the citation output from using `citation('txcutr')` in R. Please
 run this yourself to check for any updates on how to cite __txcutr__.
 
-```{r 'citation', eval = requireNamespace('txcutr')}
-print(citation('txcutr'), bibtex = TRUE)
+```{r 'citation', eval = requireNamespace('gtxcutr')}
+print(citation('gtxcutr'), bibtex = TRUE)
 ```
 
 Please note that the `txcutr` was only made possible thanks to many other R and bioinformatics software authors, which are cited either in the vignettes and/or the paper(s) describing this package.

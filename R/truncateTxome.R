@@ -43,24 +43,25 @@ setGeneric("truncateTxome", signature=c("txdb", "maxTxLength"),
 #' @importFrom BiocParallel bplapply bpparam
 #' @importFrom AnnotationDbi select taxonomyId
 #' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom magrittr %>%
 #' @importFrom methods setMethod
 #' @export
 setMethod("truncateTxome", "TxDb", function(txdb,
                                             maxTxLength=500,
                                             BPPARAM=bpparam()) {
     grlExons <- exonsBy(txdb, use.names=TRUE)
+    mcols(grlExons) <- NULL  # Remove metadata
     dfTxGene <- select(txdb, keys=names(grlExons),
                        keytype="TXNAME", columns="GENEID")
     mapTxToGene <- setNames(dfTxGene$GENEID, dfTxGene$TXNAME)
 
     message("Truncating transcripts...")
-    clipped <- bplapply(grlExons, .clipTranscript, maxTxLength=maxTxLength,
-                        BPPARAM=BPPARAM)
-    clipped <- GRangesList(clipped)
+    clipped <- bplapply(grlExons, .clipTranscript_modded, maxTxLength=maxTxLength, BPPARAM=BPPARAM)
+    grlC_clipped <- GRangesList(clipped, compress = T)
     message("Done.")
-
+    
     message("Checking for duplicate transcripts...")
-    overlaps <- findOverlaps(clipped, minoverlap=maxTxLength,
+    overlaps <- findOverlaps(grlC_clipped, minoverlap=maxTxLength,
                              ignore.strand=FALSE,
                              drop.self=TRUE, drop.redundant=TRUE)
     ## ensure genes match
@@ -70,55 +71,72 @@ setMethod("truncateTxome", "TxDb", function(txdb,
       }, idx=queryHits(overlaps), idx2=subjectHits(overlaps))
       overlaps <- overlaps[idx_genes_match]
     }
-
+    
     ## get duplicate indices
     duplicates <- unique(queryHits(overlaps))
     if (length(duplicates) > 0) {
-        clipped <- clipped[-duplicates]
+      grlC_clipped <- grlC_clipped[-duplicates]
     }
     message(sprintf("Removed %d duplicates.", length(duplicates)))
-
+    
     message("Creating exon ranges...")
     ## flatten with tx_id in metadata
-    grExons <- unlist(.mutateEach(clipped, transcript_id=names(clipped)))
+    grExons <- unlist(.mutateEach(grlC_clipped, transcript_id=names(grlC_clipped)))
     names(grExons) <- NULL
     mcols(grExons)["type"] <- "exon"
-
+    
     ## add gene id
     mcols(grExons)["gene_id"] <- mapTxToGene[mcols(grExons)$transcript_id]
-
+    
     ## reindex exon info
     grExons <- sort(grExons)
     mcols(grExons)["exon_id"] <- seq_along(grExons)
     mcols(grExons)["exon_name"] <- NULL
     ## TODO: include `exon_rank`
-
+    
     message("Done.")
-
+    
     message("Creating tx ranges...")
     ## generate transcripts GRanges with clipped bounds
-    grTxs <- unlist(GRangesList(bplapply(clipped, .fillReduce,
-                                         BPPARAM=BPPARAM)))
-    mcols(grTxs)['transcript_id'] <- names(grTxs)
+    # grTxs <- unlist(GRangesList(bplapply(clipped, .fillReduce, BPPARAM=BPPARAM)))
+    
+    grTxs <- unlist(grlC_clipped) %>% 
+      plyranges::mutate(transcript_id = names(.)) %>%
+      tibble::as_tibble() %>% 
+      dplyr::group_by(transcript_id) %>% 
+      dplyr::mutate(end = max(end)) %>% 
+      dplyr::filter(start == min(start)) %>% 
+      dplyr::slice(1) %>% 
+      dplyr::ungroup() %>%
+      dplyr::select(seqnames, start, end, strand, transcript_id) %>% 
+      GRanges()
+    
     mcols(grTxs)["type"] <- "transcript"
-
-    ## add gene id
     mcols(grTxs)["gene_id"] <- mapTxToGene[grTxs$transcript_id]
-
+    
     message("Done.")
-
+    
     message("Creating gene ranges...")
-    grGenes <- unlist(GRangesList(bplapply(split(grTxs, grTxs$gene_id),
-                                           .fillReduce, BPPARAM=BPPARAM)))
-    mcols(grGenes)['gene_id'] <- names(grGenes)
+    # grGenes <- unlist(GRangesList(bplapply(split(grTxs, grTxs$gene_id), .fillReduce, BPPARAM=BPPARAM)))
+    
+    grGenes <- grTxs %>% 
+      tibble::as_tibble() %>% 
+      dplyr::group_by(gene_id) %>% 
+      dplyr::mutate(end = max(end)) %>% 
+      dplyr::filter(start == min(start)) %>% 
+      dplyr::slice(1) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(seqnames, start, end, strand, gene_id) %>% 
+      GRanges()
+    
     mcols(grGenes)["type"] <- "gene"
     message("Done.")
-
+    
     dfMetadata <- data.frame(
       name=c("Truncated by", "Maximum Transcript Length"),
-      value=c("txcutr", maxTxLength)
+      value=c("gtxcutr", maxTxLength)
     )
-
+    
     makeTxDbFromGRanges(c(grGenes, grTxs, grExons),
                         taxonomyId=taxonomyId(txdb),
                         metadata=dfMetadata)
@@ -190,6 +208,64 @@ setMethod("truncateTxome", "TxDb", function(txdb,
           gr
       }
     }
+}
+
+
+#' Clip Transcript to Given Length - Modded by Guillermo R.
+#'
+#' Internal function for operating on individual \code{GRanges}, where ranges
+#' represent exons in a transcript. This is designed to be used in an
+#' \code{*apply} function over a \code{GRangesList} object.
+#'
+#' @param gr a \code{GRanges} object
+#' @param maxTxLength a positive integer
+#'
+#' @return the clipped \code{GRanges} object
+#'
+#' @importFrom GenomicRanges GRanges width strand start end intersect
+#' @importFrom IRanges IRanges
+#'
+.clipTranscript_modded <- function (gr, maxTxLength) {
+  if (sum(width(gr)) <= maxTxLength) { ## already short enough
+    gr
+  } else { ## need to adjust
+    ## adjustment is directed
+    txStrand <- strand(gr)
+    if (all(txStrand == "+")) {
+      ## order by 3' ends
+      idx <- order(-end(gr))
+      
+      ## compute cumulative lengths
+      cumLength <- cumsum(width(gr[idx]))
+      
+      ## index of exon that exceeds maximum length
+      idxLast <- min(which(cumLength >= maxTxLength))
+      
+      ## compute cutoff (genomic position)
+      start(gr[idx[idxLast]]) <- start(gr[idx[idxLast]]) + (cumLength[idxLast] - maxTxLength)
+      
+      ## Return object
+      gr[idx[idxLast:1]]
+    } else if (all(txStrand == "-")) {
+      ## order by 3' ends
+      idx <- order(start(gr))
+      
+      ## compute cumulative lengths
+      cumLength <- cumsum(width(gr[idx]))
+      
+      ## index of exon that exceeds maximum length
+      idxLast <- min(which(cumLength >= maxTxLength))
+      
+      ## compute cutoff (genomic position)
+      end(gr[idx[idxLast]]) <- end(gr[idx[idxLast]]) - (cumLength[idxLast] - maxTxLength)
+      
+      ## Return object
+      gr[idx[1:idxLast]]
+    } else {
+      warning("Skipping Transcript: Encountered inconsistent strand annotation!", gr)
+      gr
+    }
+  }
 }
 
 
