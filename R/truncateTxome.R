@@ -42,32 +42,40 @@ setGeneric("truncateTxome", signature=c("txdb", "maxTxLength"),
 #' @importFrom GenomicFeatures exonsBy makeTxDbFromGRanges
 #' @importFrom BiocParallel bplapply bpparam
 #' @importFrom AnnotationDbi select taxonomyId
-#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom S4Vectors queryHits subjectHits split
 #' @importFrom magrittr %>%
 #' @importFrom methods setMethod
+#' @importFrom plyranges mutate
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr group_by mutate filter slice ungroup
 #' @export
 setMethod("truncateTxome", "TxDb", function(txdb,
                                             maxTxLength=500,
                                             BPPARAM=bpparam()) {
     grlExons <- exonsBy(txdb, use.names=TRUE)
     mcols(grlExons) <- NULL  # Remove metadata
-    dfTxGene <- select(txdb, keys=names(grlExons),
-                       keytype="TXNAME", columns="GENEID")
+    dfTxGene <- AnnotationDbi::select(txdb, keys=names(grlExons), keytype="TXNAME", columns="GENEID")
     mapTxToGene <- setNames(dfTxGene$GENEID, dfTxGene$TXNAME)
 
     message("Truncating transcripts...")
-    clipped <- bplapply(grlExons, .clipTranscript_modded, maxTxLength=maxTxLength, BPPARAM=BPPARAM)
-    grlC_clipped <- GRangesList(clipped, compress = T)
+    clipped <- .clipTranscript_modded2(grlExons, maxTxLength = maxTxLength, BPPARAM = BPPARAM)
+    seqinfo(clipped) <- seqinfo(grlExons)
+    grlC_clipped <- S4Vectors::split(clipped, mcols(clipped)["transcript_id"])
+    
+    # clipped2 <- bplapply(grlExons, .clipTranscript, maxTxLength=maxTxLength, BPPARAM=BPPARAM)
+    # grlC_clipped2 <- GRangesList(clipped2, compress = T)
     message("Done.")
     
     message("Checking for duplicate transcripts...")
     overlaps <- findOverlaps(grlC_clipped, minoverlap=maxTxLength,
                              ignore.strand=FALSE,
                              drop.self=TRUE, drop.redundant=TRUE)
+    
+    grlC_clipped_names <- names(grlC_clipped)
     ## ensure genes match
     if (length(overlaps) > 0) {
       idx_genes_match <- mapply(function (idx1, idx2) {
-        mapTxToGene[names(clipped[idx1])] == mapTxToGene[names(clipped[idx2])]
+        mapTxToGene[grlC_clipped_names[idx1]] == mapTxToGene[grlC_clipped_names[idx2]]
       }, idx=queryHits(overlaps), idx2=subjectHits(overlaps))
       overlaps <- overlaps[idx_genes_match]
     }
@@ -101,7 +109,6 @@ setMethod("truncateTxome", "TxDb", function(txdb,
     # grTxs <- unlist(GRangesList(bplapply(clipped, .fillReduce, BPPARAM=BPPARAM)))
     
     grTxs <- unlist(grlC_clipped) %>% 
-      plyranges::mutate(transcript_id = names(.)) %>%
       tibble::as_tibble() %>% 
       dplyr::group_by(transcript_id) %>% 
       dplyr::mutate(end = max(end)) %>% 
@@ -182,7 +189,7 @@ setMethod("truncateTxome", "TxDb", function(txdb,
                             strand="+")
 
           ## clip exons with interval
-          intersect(gr, grMask)
+          GenomicRanges::intersect(gr, grMask)
       } else if (all(txStrand == "-")) {
           ## order by 3' ends
           idx <- order(start(gr))
@@ -202,7 +209,7 @@ setMethod("truncateTxome", "TxDb", function(txdb,
                             strand="-")
 
           ## clip exons with interval
-          intersect(gr, grMask)
+          GenomicRanges::intersect(gr, grMask)
       } else {
           warning("Skipping Transcript: Encountered inconsistent strand annotation!", gr)
           gr
@@ -266,6 +273,106 @@ setMethod("truncateTxome", "TxDb", function(txdb,
       gr
     }
   }
+}
+
+
+#' Clip Transcript to Given Length - Modded 2 by Guillermo R.
+#'
+#' Internal function for operating on individual \code{GRanges}, where ranges
+#' represent exons in a transcript. This is designed to be used in an
+#' \code{*apply} function over a \code{GRangesList} object.
+#'
+#' @param gr a \code{GRanges} object
+#' @param maxTxLength a positive integer
+#'
+#' @return the clipped \code{GRanges} object
+#'
+#' @importFrom GenomicRanges GRanges width strand start end intersect
+#' @importFrom IRanges IRanges
+#' @importFrom tibble as_tibble enframe
+#' @importFrom dplyr mutate left_join group_by arrange filter lag row_number ungroup bind_rows summarize n_distinct
+#' @importFrom forcats fct_inorder
+#'
+.clipTranscript_modded2 <- function (grlExons, maxTxLength, BPPARAM) {
+  exons <- unlist(grlExons)
+  if(!"transcript_id" %in% colnames(mcols(exons))){
+    mcols(exons) <- NULL
+    mcols(exons)["transcript_id"] <- names(exons)
+  }
+    
+  truncateSplits <- function(exons_strand, maxTxLength, BPPARAM){
+    ## Split by cores
+    transcript_id <- tibble::enframe(unique(exons_strand$transcript_id) %>% 
+                               setNames(., seq_along(.)), 
+                             name = "core_id", value = "transcript_id") %>% 
+      dplyr::mutate(core_id = as.numeric(core_id) %% BPPARAM$workers)
+    split_exons <- exons_strand %>% 
+      dplyr::left_join(transcript_id, by = "transcript_id") %>% 
+      split(., .$core_id)
+    
+    truncated_split_exons <- BiocParallel::bplapply(
+      split_exons,
+      BPPARAM = BPPARAM,
+      function(split_exons_i) {
+        strandTx = split_exons_i[[1, "strand"]]
+        
+        if(strandTx == "+"){
+          split_exons_i %>% 
+            dplyr::select(-core_id) %>% 
+            dplyr::group_by(transcript_id) %>% 
+            dplyr::arrange(-end, .by_group = TRUE) %>% 
+            dplyr::mutate(cumLength = cumsum(width)) %>% 
+            dplyr::filter(cumLength < maxTxLength | dplyr::lag(cumLength < maxTxLength, default = F) | dplyr::row_number() == 1) %>% 
+            dplyr::mutate(start = ifelse(cumLength > maxTxLength, start + (cumLength - maxTxLength), start)) %>% 
+            dplyr::select(-cumLength) %>% 
+            dplyr::arrange(end, .by_group = TRUE) %>% 
+            dplyr::ungroup()
+        }else if(strandTx == "-"){
+          split_exons_i %>% 
+            dplyr::select(-core_id) %>% 
+            dplyr::group_by(transcript_id) %>% 
+            dplyr::arrange(start, .by_group = TRUE) %>% 
+            dplyr::mutate(cumLength = cumsum(width)) %>% 
+            dplyr::filter(cumLength < maxTxLength | dplyr::lag(cumLength < maxTxLength, default = F) | dplyr::row_number() == 1) %>% 
+            dplyr::mutate(end = ifelse(cumLength > maxTxLength, end - (cumLength - maxTxLength), end)) %>% 
+            dplyr::select(-cumLength) %>% 
+            dplyr::arrange(start, .by_group = TRUE) %>% 
+            dplyr::ungroup()
+        }else{
+          return(NULL)
+        }
+      }
+    ) %>% dplyr::bind_rows()
+  }
+  
+  exons_df <- tibble::as_tibble(exons) %>% dplyr::mutate(transcript_id = forcats::fct_inorder(as.character(transcript_id)))
+  
+  ## Validate strand consistency
+  multistrand_tx <- exons_df %>% 
+    dplyr::group_by(transcript_id) %>% 
+    dplyr::summarise(n = dplyr::n_distinct(strand)) %>% 
+    dplyr::filter(n > 1)
+  
+  if(nrow(multistrand_tx) > 0){
+    warning("Some transcripts have inconsistend strand annotation! These will be ignored")
+    remove_tx <- unique(multistrand_tx$transcript_id)
+    exons_df <- exons_df %>% dplyr::filter(!transcript_id %in% remove_tx)
+    rm(remove_tx)
+  }
+  rm(multistrand_tx)
+  
+  ## Split by strand
+  exons_split_df <- split(exons_df, exons_df$strand)
+  exons_pos <- exons_split_df[["+"]]
+  exons_neg <- exons_split_df[["-"]]
+  
+  rm(exons_split_df)
+  
+  truncated_pos <- truncateSplits(exons_pos, maxTxLength, BPPARAM)
+  truncated_neg <- truncateSplits(exons_neg, maxTxLength, BPPARAM)
+  
+  truncated_exons <- dplyr::bind_rows(truncated_pos, truncated_neg) %>% GenomicRanges::GRanges()
+  return(truncated_exons)
 }
 
 
