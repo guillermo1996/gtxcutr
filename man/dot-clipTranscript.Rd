@@ -2,20 +2,23 @@
 % Please edit documentation in R/truncateTxome.R
 \name{.clipTranscript}
 \alias{.clipTranscript}
-\title{Clip Transcript to Given Length}
+\title{Clip Transcript to given length}
 \usage{
-.clipTranscript(gr, maxTxLength)
+.clipTranscript(grlExons, maxTxLength, txEnd, BPPARAM)
 }
 \arguments{
-\item{gr}{a \code{GRanges} object}
+\item{grlExons}{a \code{CompressedGRangesList} object}
 
 \item{maxTxLength}{a positive integer}
+
+\item{BPPARAM}{A \linkS4class{BiocParallelParam} object specifying whether
+and how the method should be parallelized.}
 }
 \value{
 the clipped \code{GRanges} object
 }
 \description{
-Internal function for operating on individual \code{GRanges}, where ranges
-represent exons in a transcript. This is designed to be used in an
-\code{*apply} function over a \code{GRangesList} object.
+Internal function for operating on a \code{GRangesList}, where ranges
+represent exons in a transcript. This is designed to be used with a
+\code{GRangesList} object.
 }

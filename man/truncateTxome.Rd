@@ -2,30 +2,42 @@
 % Please edit documentation in R/truncateTxome.R
 \name{truncateTxome}
 \alias{truncateTxome}
+\alias{truncate3primeTxome}
+\alias{truncate5primeTxome}
+\alias{truncate3primeTxome,TxDb-method}
+\alias{truncate5primeTxome,TxDb-method}
 \alias{truncateTxome,TxDb-method}
 \title{Truncate Transcriptome}
 \usage{
-truncateTxome(txdb, maxTxLength = 500, ...)
+truncateTxome(txdb, maxTxLength = 500, txEnd = "3prime", BPPARAM = bpparam())
 
-\S4method{truncateTxome}{TxDb}(txdb, maxTxLength = 500, BPPARAM = bpparam())
+truncate3primeTxome(txdb, maxTxLength = 500, BPPARAM = bpparam(), quiet = F)
+
+truncate5primeTxome(txdb, maxTxLength = 300, BPPARAM = bpparam(), quiet = F)
+
+\S4method{truncate3primeTxome}{TxDb}(txdb, maxTxLength = 500, BPPARAM = bpparam(), quiet = F)
+
+\S4method{truncate5primeTxome}{TxDb}(txdb, maxTxLength = 300, BPPARAM = bpparam(), quiet = F)
+
+\S4method{truncateTxome}{TxDb}(txdb, maxTxLength = 500, txEnd = "3prime", BPPARAM = bpparam())
 }
 \arguments{
 \item{txdb}{a \code{TxDb} object}
 
 \item{maxTxLength}{the maximum length of transcripts}
 
-\item{...}{additional arguments}
+\item{txEnd}{transcript end to truncate}
 
 \item{BPPARAM}{A \linkS4class{BiocParallelParam} object specifying whether
 and how the method should be parallelized.}
+
+\item{quiet}{silent output messages}
 }
 \value{
 a \code{TxDb} object
-
-a \code{TxDb} object
 }
 \description{
-Truncate Transcriptome
+Truncates the provided transcriptome
 }
 \examples{
 library(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
@@ -37,11 +49,10 @@ txdb <- TxDb.Scerevisiae.UCSC.sacCer3.sgdGene
 seqlevels(txdb) <- c("chrI")
 
 ## last 500 nts per tx
-txdb_w500 <- truncateTxome(txdb)
+txdb_w500 <- truncate3primeTxome(txdb)
 txdb_w500
 
 ## last 100 nts per tx
-txdb_w100 <- truncateTxome(txdb, maxTxLength=100)
+txdb_w100 <- truncate3primeTxome(txdb, maxTxLength=100)
 txdb_w100
-
 }
