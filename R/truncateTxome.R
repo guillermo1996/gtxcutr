@@ -97,8 +97,8 @@ setMethod("truncateTxome", "TxDb", function(txdb,
                                             BPPARAM = bpparam()) {
   ############################################################################
   # Ensure correct values of `txEnd`
-  valid_3prime = c("3", "3'", "3prime", "3_prime")
-  valid_5prime = c("5", "5'", "5prime", "5_prime")
+  valid_3prime = c("3", "3'", "3p", "3prime", "3_prime")
+  valid_5prime = c("5", "5'", "5p", "5prime", "5_prime")
   if(txEnd %in% valid_3prime) txEnd <- "3prime"
   if(txEnd %in% valid_5prime) txEnd <- "5prime"
   
