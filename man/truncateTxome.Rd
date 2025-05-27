@@ -9,17 +9,41 @@
 \alias{truncateTxome,TxDb-method}
 \title{Truncate Transcriptome}
 \usage{
-truncateTxome(txdb, maxTxLength = 500, txEnd = "3prime", BPPARAM = bpparam())
+truncateTxome(
+  txdb,
+  maxTxLength = 500,
+  txEnd = "3prime",
+  overlap_path = "",
+  BPPARAM = bpparam()
+)
 
-truncate3primeTxome(txdb, maxTxLength = 500, BPPARAM = bpparam(), quiet = F)
+truncate3primeTxome(
+  txdb,
+  maxTxLength = 500,
+  overlap_path = "",
+  BPPARAM = bpparam(),
+  quiet = F
+)
 
-truncate5primeTxome(txdb, maxTxLength = 300, BPPARAM = bpparam(), quiet = F)
+truncate5primeTxome(
+  txdb,
+  maxTxLength = 300,
+  overlap_path = "",
+  BPPARAM = bpparam(),
+  quiet = F
+)
 
 \S4method{truncate3primeTxome}{TxDb}(txdb, maxTxLength = 500, BPPARAM = bpparam(), quiet = F)
 
 \S4method{truncate5primeTxome}{TxDb}(txdb, maxTxLength = 300, BPPARAM = bpparam(), quiet = F)
 
-\S4method{truncateTxome}{TxDb}(txdb, maxTxLength = 500, txEnd = "3prime", BPPARAM = bpparam())
+\S4method{truncateTxome}{TxDb}(
+  txdb,
+  maxTxLength = 500,
+  txEnd = "3prime",
+  overlap_path = "",
+  BPPARAM = bpparam()
+)
 }
 \arguments{
 \item{txdb}{a \code{TxDb} object}
@@ -32,6 +56,9 @@ truncate5primeTxome(txdb, maxTxLength = 300, BPPARAM = bpparam(), quiet = F)
 and how the method should be parallelized.}
 
 \item{quiet}{silent output messages}
+
+\item{overlapPath}{path to store the transcripts removed after truncation due
+to overlaps. Leave empty to not store any results.}
 }
 \value{
 a \code{TxDb} object

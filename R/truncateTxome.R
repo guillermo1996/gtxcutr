@@ -4,7 +4,7 @@
 #' @importFrom methods setGeneric
 #' @importFrom BiocParallel bpparam
 setGeneric("truncateTxome", signature=c("txdb", "maxTxLength"),
-           function(txdb, maxTxLength=500, txEnd="3prime", BPPARAM = bpparam()) standardGeneric("truncateTxome")
+           function(txdb, maxTxLength=500, txEnd="3prime", overlap_path = "", BPPARAM = bpparam()) standardGeneric("truncateTxome")
 )
 
 
@@ -15,7 +15,7 @@ setGeneric("truncateTxome", signature=c("txdb", "maxTxLength"),
 #' @importFrom methods setGeneric
 #' @importFrom BiocParallel bpparam
 setGeneric("truncate3primeTxome", signature=c("txdb", "maxTxLength"),
-           function(txdb, maxTxLength=500, BPPARAM = bpparam(), quiet = F) standardGeneric("truncate3primeTxome")
+           function(txdb, maxTxLength=500, overlap_path = "", BPPARAM = bpparam(), quiet = F) standardGeneric("truncate3primeTxome")
 )
 
 
@@ -26,7 +26,7 @@ setGeneric("truncate3primeTxome", signature=c("txdb", "maxTxLength"),
 #' @importFrom methods setGeneric
 #' @importFrom BiocParallel bpparam
 setGeneric("truncate5primeTxome", signature=c("txdb", "maxTxLength"),
-           function(txdb, maxTxLength=300, BPPARAM = bpparam(), quiet = F) standardGeneric("truncate5primeTxome")
+           function(txdb, maxTxLength=300, overlap_path = "", BPPARAM = bpparam(), quiet = F) standardGeneric("truncate5primeTxome")
 )
 
 #' @rdname truncateTxome
@@ -38,9 +38,9 @@ setMethod("truncate3primeTxome", "TxDb", function(txdb,
                                                   BPPARAM = bpparam(),
                                                   quiet = F) {
   if(quiet){
-    suppressMessages(truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "3prime", BPPARAM = BPPARAM))
+    suppressMessages(truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "3prime", overlap_path = "", BPPARAM = BPPARAM))
   }else{
-    truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "3prime", BPPARAM = BPPARAM)
+    truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "3prime", overlap_path = "", BPPARAM = BPPARAM)
   }
 })
 
@@ -53,14 +53,14 @@ setMethod("truncate5primeTxome", "TxDb", function(txdb,
                                                   BPPARAM = bpparam(),
                                                   quiet = F) {
   if(quiet){
-    suppressMessages(truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "5prime", BPPARAM = BPPARAM))
+    suppressMessages(truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "5prime", overlap_path = "", BPPARAM = BPPARAM))
   }else{
-    truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "5prime", BPPARAM = BPPARAM)
+    truncateTxome(txdb, maxTxLength = maxTxLength, txEnd = "5prime", overlap_path = "", BPPARAM = BPPARAM)
   }
 })
 
 #' Truncate Transcriptome
-#' 
+#'
 #' Truncates the provided transcriptome
 #'
 #' @rdname truncateTxome
@@ -68,6 +68,8 @@ setMethod("truncate5primeTxome", "TxDb", function(txdb,
 #' @param txdb a \code{TxDb} object
 #' @param maxTxLength the maximum length of transcripts
 #' @param txEnd transcript end to truncate
+#' @param overlapPath path to store the transcripts removed after truncation due
+#'   to overlaps. Leave empty to not store any results.
 #' @param BPPARAM A \linkS4class{BiocParallelParam} object specifying whether
 #'   and how the method should be parallelized.
 #' @return a \code{TxDb} object
@@ -94,6 +96,7 @@ setMethod("truncate5primeTxome", "TxDb", function(txdb,
 setMethod("truncateTxome", "TxDb", function(txdb,
                                             maxTxLength = 500,
                                             txEnd = "3prime",
+                                            overlap_path = "",
                                             BPPARAM = bpparam()) {
   ############################################################################
   # Ensure correct values of `txEnd`
@@ -125,6 +128,13 @@ setMethod("truncateTxome", "TxDb", function(txdb,
   ############################################################################
   # Remove overlapping transcripts
   message("Checking for duplicate transcripts...")
+  
+  ## GR: Important note regarding overlap transcripts. The default txcutr
+  ## behaviour is to remove duplicates if, and only if, they share a minimum
+  ## overlap of `maxTxLenght`. That is, if two transcripts had the same genomic
+  ## coordinates but their width is less than `maxTxLenght`, then they are
+  ## not removed for overlaps (they will probably trigger the merge table step
+  ## later on).
   overlaps <- findOverlaps(grlC_clipped, minoverlap=maxTxLength,
                            ignore.strand=FALSE,
                            drop.self=TRUE, drop.redundant=TRUE)
@@ -136,6 +146,17 @@ setMethod("truncateTxome", "TxDb", function(txdb,
                   subjectGene = mapTxToGene[grlC_clipped_names[subjectHits]]) %>% 
     dplyr::filter(queryGene == subjectGene) %>% 
     dplyr::select(-queryGene, -subjectGene)
+  
+  ## GR: In later stages of analysis, it might be necessary to reconstruct the
+  ## source transcript of the truncated output.
+  ## 
+  ## //TODO make it more elegant
+  if(overlap_path != ""){
+    df <- matched_overlaps %>% 
+      dplyr::mutate(queryHits = grlC_clipped_names[queryHits],
+                    subjectHits = grlC_clipped_names[subjectHits])
+    write.table(df, overlap_path, sep="\t", row.names=FALSE, quote=FALSE)
+  }
   
   duplicates <- unique(matched_overlaps$queryHits)
   if (length(duplicates) > 0) {

@@ -56,7 +56,7 @@ setMethod("generateMergeTable", "TxDb", function(txdb, minDistance=200L) {
     grTxs <- resize(grTxs, width=minDistance, fix="end", ignore.strand=FALSE)
 
     ## generate raw overlaps
-    overlaps <- as.data.frame(findOverlaps(grTxs, ignore.strand=FALSE,
+    overlaps <- tibble::as_tibble(findOverlaps(grTxs, ignore.strand=FALSE,
                                            drop.self=TRUE))
     overlaps["tx_in"] <- unlist(grTxs$tx_name[overlaps$queryHits])
     overlaps["tx_out"] <- unlist(grTxs$tx_name[overlaps$subjectHits])
@@ -85,12 +85,13 @@ setMethod("generateMergeTable", "TxDb", function(txdb, minDistance=200L) {
     }
 
     ## pick unique out
-    groupedOverlaps <- split(overlaps, overlaps$queryHits)
-    singleOverlaps <- lapply(groupedOverlaps,
-                             function (df) {
-                                 df[with(df, order(-end_out, tx_out)),][1,]
-                             })
-    dfMerge <- do.call(rbind, singleOverlaps)[, c("tx_in", "tx_out")]
+    ## pick unique out
+    dfMerge <- overlaps %>% 
+        dplyr::group_by(queryHits) %>% 
+        dplyr::arrange(-end_out, tx_out, .by_group = T) %>% 
+        dplyr::slice_head(n = 1) %>% 
+        dplyr::ungroup() %>% 
+        dplyr::select(tx_in, tx_out)
     dfMerge <- .propagateMap(dfMerge)
 
     ## include self-maps
@@ -108,7 +109,6 @@ setMethod("generateMergeTable", "TxDb", function(txdb, minDistance=200L) {
     dfMerge
 }
 )
-
 
 #' Propagate Transcript Merge Map
 #'
