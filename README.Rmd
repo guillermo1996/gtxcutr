@@ -13,14 +13,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-# txcutr
+# gtxcutr
 
-<!-- badges: start -->
-[![R build status](https://github.com/mfansler/txcutr/workflows/R-CMD-check-bioc/badge.svg)](https://github.com/mfansler/txcutr/actions)
-[![codecov](https://codecov.io/gh/mfansler/txcutr/branch/bioc-check/graph/badge.svg?token=CGGZP68G67)](https://codecov.io/gh/mfansler/txcutr)
-[![Anaconda-Server Badge](https://anaconda.org/merv/r-txcutr/badges/installer/conda.svg)](https://conda.anaconda.org/merv/r-txcutr)
-[![Anaconda-Server Badge](https://anaconda.org/merv/r-txcutr/badges/version.svg)](https://anaconda.org/merv/r-txcutr)
-<!-- badges: end -->
+<!-- <!-- badges: start -->
+<!-- [![R build status](https://github.com/mfansler/txcutr/workflows/R-CMD-check-bioc/badge.svg)](https://github.com/mfansler/txcutr/actions) -->
+<!-- [![codecov](https://codecov.io/gh/mfansler/txcutr/branch/bioc-check/graph/badge.svg?token=CGGZP68G67)](https://codecov.io/gh/mfansler/txcutr) -->
+<!-- [![Anaconda-Server Badge](https://anaconda.org/merv/r-txcutr/badges/installer/conda.svg)](https://conda.anaconda.org/merv/r-txcutr) -->
+<!-- [![Anaconda-Server Badge](https://anaconda.org/merv/r-txcutr/badges/version.svg)](https://anaconda.org/merv/r-txcutr) -->
+<!-- <!-- badges: end -->
 
 ## Overview
 
@@ -45,32 +45,32 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 BiocManager::install("txcutr")
 ```
 
-And the development version from [GitHub](https://github.com/mfansler/txcutr) with:
+And the `gtxcutr`development version from [GitHub](https://github.com/guillermo1996/gtxcutr) with:
 
 ```{r 'install_dev', eval = FALSE}
-BiocManager::install("mfansler/txcutr")
+devtools::install_github("https://github.com/guillermo1996/gtxcutr")
 ```
 
-### Conda/Mamba
+<!-- ### Conda/Mamba -->
 
-Users managing R environments with Conda/Mamba can install the package with:
+<!-- Users managing R environments with Conda/Mamba can install the package with: -->
 
-**Conda**
-```bash
-conda install -c conda-forge -c bioconda merv::r-txcutr
-```
+<!-- **Conda** -->
+<!-- ```bash -->
+<!-- conda install -c conda-forge -c bioconda merv::r-txcutr -->
+<!-- ``` -->
 
-**Mamba**
-```bash
-mamba install -c conda-forge -c bioconda merv::r-txcutr
-```
+<!-- **Mamba** -->
+<!-- ```bash -->
+<!-- mamba install -c conda-forge -c bioconda merv::r-txcutr -->
+<!-- ``` -->
 
-We strongly encourage users to create dedicated R environments. **Do not 
-install this in your *base* environment!**
+<!-- We strongly encourage users to create dedicated R environments. **Do not  -->
+<!-- install this in your *base* environment!** -->
 
 ## Example
 
-A typical workflow for `txcutr` involves 
+A typical workflow for `gtxcutr` involves 
 
  - loading an existing annotation as `TxDb` object
  - truncating the annotation
@@ -79,7 +79,7 @@ A typical workflow for `txcutr` involves
  
 ```{r eval=FALSE}
 library(rtracklayer)
-library(txcutr)
+library(gtxcutr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
 ## load human genome

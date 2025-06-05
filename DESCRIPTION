@@ -1,6 +1,6 @@
 Package: gtxcutr
 Title: Transcriptome CUTteR
-Version: 1.1.0.3
+Version: 1.1.0.4
 Date: 2025-03-27
 Authors@R: c(
     person("Mervin", "Fansler", , "mef3005@med.cornell.edu", role = c("aut", "cre"),

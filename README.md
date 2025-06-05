@@ -1,18 +1,19 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# txcutr
+# gtxcutr
 
-<!-- badges: start -->
+<!-- <!-- badges: start -->
 
-[![R build
-status](https://github.com/mfansler/txcutr/workflows/R-CMD-check-bioc/badge.svg)](https://github.com/mfansler/txcutr/actions)
-[![codecov](https://codecov.io/gh/mfansler/txcutr/branch/bioc-check/graph/badge.svg?token=CGGZP68G67)](https://codecov.io/gh/mfansler/txcutr)
-[![Anaconda-Server
-Badge](https://anaconda.org/merv/r-txcutr/badges/installer/conda.svg)](https://conda.anaconda.org/merv/r-txcutr)
-[![Anaconda-Server
-Badge](https://anaconda.org/merv/r-txcutr/badges/version.svg)](https://anaconda.org/merv/r-txcutr)
-<!-- badges: end -->
+<!-- [![R build status](https://github.com/mfansler/txcutr/workflows/R-CMD-check-bioc/badge.svg)](https://github.com/mfansler/txcutr/actions) -->
+
+<!-- [![codecov](https://codecov.io/gh/mfansler/txcutr/branch/bioc-check/graph/badge.svg?token=CGGZP68G67)](https://codecov.io/gh/mfansler/txcutr) -->
+
+<!-- [![Anaconda-Server Badge](https://anaconda.org/merv/r-txcutr/badges/installer/conda.svg)](https://conda.anaconda.org/merv/r-txcutr) -->
+
+<!-- [![Anaconda-Server Badge](https://anaconda.org/merv/r-txcutr/badges/version.svg)](https://anaconda.org/merv/r-txcutr) -->
+
+<!-- <!-- badges: end -->
 
 ## Overview
 
@@ -41,36 +42,40 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 BiocManager::install("txcutr")
 ```
 
-And the development version from
-[GitHub](https://github.com/mfansler/txcutr) with:
+And the `gtxcutr`development version from
+[GitHub](https://github.com/guillermo1996/gtxcutr) with:
 
 ``` r
-BiocManager::install("mfansler/txcutr")
+devtools::install_github("https://github.com/guillermo1996/gtxcutr")
 ```
 
-### Conda/Mamba
+<!-- ### Conda/Mamba -->
 
-Users managing R environments with Conda/Mamba can install the package
-with:
+<!-- Users managing R environments with Conda/Mamba can install the package with: -->
 
-**Conda**
+<!-- **Conda** -->
 
-``` bash
-conda install -c conda-forge -c bioconda merv::r-txcutr
-```
+<!-- ```bash -->
 
-**Mamba**
+<!-- conda install -c conda-forge -c bioconda merv::r-txcutr -->
 
-``` bash
-mamba install -c conda-forge -c bioconda merv::r-txcutr
-```
+<!-- ``` -->
 
-We strongly encourage users to create dedicated R environments. **Do not
-install this in your *base* environment!**
+<!-- **Mamba** -->
+
+<!-- ```bash -->
+
+<!-- mamba install -c conda-forge -c bioconda merv::r-txcutr -->
+
+<!-- ``` -->
+
+<!-- We strongly encourage users to create dedicated R environments. **Do not  -->
+
+<!-- install this in your *base* environment!** -->
 
 ## Example
 
-A typical workflow for `txcutr` involves
+A typical workflow for `gtxcutr` involves
 
 - loading an existing annotation as `TxDb` object
 - truncating the annotation
@@ -79,7 +84,7 @@ A typical workflow for `txcutr` involves
 
 ``` r
 library(rtracklayer)
-library(txcutr)
+library(gtxcutr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
 ## load human genome
@@ -112,16 +117,16 @@ Please run this yourself to check for any updates on how to cite
 print(citation('gtxcutr'), bibtex = TRUE)
 #> To cite package 'gtxcutr' in publications use:
 #> 
-#>   Fansler M (2025). _gtxcutr: Transcriptome CUTteR - Modded by
-#>   Guillermo R._. R package version 0.100.1.
+#>   Fansler M (2025). _gtxcutr: Transcriptome CUTteR_. R package version
+#>   1.1.0.4.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
 #>   @Manual{,
-#>     title = {gtxcutr: Transcriptome CUTteR - Modded by Guillermo R.},
+#>     title = {gtxcutr: Transcriptome CUTteR},
 #>     author = {Mervin Fansler},
 #>     year = {2025},
-#>     note = {R package version 0.100.1},
+#>     note = {R package version 1.1.0.4},
 #>   }
 ```
 
@@ -144,7 +149,7 @@ contributing to this project, you agree to abide by its terms.
   *[rcmdcheck](https://CRAN.R-project.org/package=rcmdcheck)* customized
   to use [Bioconductor’s docker
   containers](https://www.bioconductor.org/help/docker/) and
-  *[BiocCheck](https://bioconductor.org/packages/3.18/BiocCheck)*.
+  *[BiocCheck](https://bioconductor.org/packages/3.22/BiocCheck)*.
 - Code coverage assessment is possible thanks to
   [codecov](https://codecov.io/gh) and
   *[covr](https://CRAN.R-project.org/package=covr)*.
@@ -160,4 +165,4 @@ contributing to this project, you agree to abide by its terms.
 For more details, check the `dev` directory.
 
 This package was developed using
-*[biocthis](https://bioconductor.org/packages/3.18/biocthis)*.
+*[biocthis](https://bioconductor.org/packages/3.22/biocthis)*.
