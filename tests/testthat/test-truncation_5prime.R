@@ -19,10 +19,10 @@ gr_single_contig_w1000_5p <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1"),
   exon_id=c(NA, NA, "exon_1"))
 
-txdb_single_contig_w1000_5p <- makeTxDbFromGRanges(gr_single_contig_w1000_5p)
+txdb_single_contig_w1000_5p <- makeTxDbSafe(gr_single_contig_w1000_5p)
 
 ## Negative Strand
-txdb_single_contig_w1000_5p_neg <- makeTxDbFromGRanges(invertStrand(gr_single_contig_w1000_5p))
+txdb_single_contig_w1000_5p_neg <- makeTxDbSafe(invertStrand(gr_single_contig_w1000_5p))
 
 ## Multi Exon
 gr_multi_exon_5p <- GRanges(
@@ -37,10 +37,10 @@ gr_multi_exon_5p <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1", "tx_1", "tx_1"),
   exon_id=c(NA, NA, "exon_1", "exon_2", "exon_3"))
 
-txdb_multi_exon_5p <- makeTxDbFromGRanges(gr_multi_exon_5p)
+txdb_multi_exon_5p <- makeTxDbSafe(gr_multi_exon_5p)
 
 ## Negative Strand
-txdb_multi_exon_5p_neg <- makeTxDbFromGRanges(invertStrand(gr_multi_exon_5p))
+txdb_multi_exon_5p_neg <- makeTxDbSafe(invertStrand(gr_multi_exon_5p))
 
 ########
 ## Tests

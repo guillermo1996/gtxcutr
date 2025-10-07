@@ -43,7 +43,7 @@ setGeneric("generateMergeTable", signature=c("txdb", "minDistance"),
 #' txdb_w100 <- truncateTxome(txdb, maxTxLength=100)
 #' txdb_w100
 #'
-#' @importFrom GenomicRanges mcols resize findOverlaps
+#' @importFrom GenomicRanges mcols resize findOverlaps start end strand
 #' @importFrom GenomicFeatures transcripts
 #' @importFrom methods setMethod
 #' @importFrom stats setNames
@@ -53,7 +53,7 @@ setMethod("generateMergeTable", "TxDb", function(txdb, minDistance=200L) {
                          columns=c("gene_id", "tx_id", "tx_name"))
 
     ## use only ends
-    grTxs <- resize(grTxs, width=minDistance, fix="end", ignore.strand=FALSE)
+    grTxs <- GenomicRanges::resize(grTxs, width=minDistance, fix="end", ignore.strand=FALSE)
 
     ## generate raw overlaps
     overlaps <- tibble::as_tibble(findOverlaps(grTxs, ignore.strand=FALSE,

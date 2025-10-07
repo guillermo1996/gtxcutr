@@ -19,8 +19,8 @@ gr_contig_3p <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1", "tx_2", "tx_2"),
   exon_id=c(NA, NA, "exon_1", NA, "exon_2"))
 
-txdb_contig_3p <- makeTxDbFromGRanges(gr_contig_3p)
-txdb_contig_3p_inv <- makeTxDbFromGRanges(invertStrand(gr_contig_3p))
+txdb_contig_3p <- makeTxDbSafe(gr_contig_3p)
+txdb_contig_3p_inv <- makeTxDbSafe(invertStrand(gr_contig_3p))
 
 ## Negative Strand - 3'
 gr_contig_neg_3p <- GRanges(
@@ -35,8 +35,8 @@ gr_contig_neg_3p <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1", "tx_2", "tx_2"),
   exon_id=c(NA, NA, "exon_1", NA, "exon_2"))
 
-txdb_contig_neg_3p <- makeTxDbFromGRanges(gr_contig_neg_3p)
-txdb_contig_neg_3p_inv <- makeTxDbFromGRanges(invertStrand(gr_contig_neg_3p))
+txdb_contig_neg_3p <- makeTxDbSafe(gr_contig_neg_3p)
+txdb_contig_neg_3p_inv <- makeTxDbSafe(invertStrand(gr_contig_neg_3p))
 
 ## Overlapping Genes - 3'
 gr_multigene_3p <- GRanges(
@@ -57,7 +57,7 @@ gr_multigene_3p <- GRanges(
   exon_id=c(NA, NA, "exon_1",
             NA, NA, "exon_2"))
 
-txdb_multigene_3p <- makeTxDbFromGRanges(gr_multigene_3p)
+txdb_multigene_3p <- makeTxDbSafe(gr_multigene_3p)
 
 ## Single Exon Gene - 5'
 gr_contig_5p <- GRanges(
@@ -72,8 +72,8 @@ gr_contig_5p <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1", "tx_2", "tx_2"),
   exon_id=c(NA, NA, "exon_1", NA, "exon_2"))
 
-txdb_contig_5p <- makeTxDbFromGRanges(gr_contig_5p)
-txdb_contig_5p_inv <- makeTxDbFromGRanges(invertStrand(gr_contig_5p))
+txdb_contig_5p <- makeTxDbSafe(gr_contig_5p)
+txdb_contig_5p_inv <- makeTxDbSafe(invertStrand(gr_contig_5p))
 
 ## Negative Strand - 5'
 gr_contig_neg_5p <- GRanges(
@@ -88,8 +88,8 @@ gr_contig_neg_5p <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1", "tx_2", "tx_2"),
   exon_id=c(NA, NA, "exon_1", NA, "exon_2"))
 
-txdb_contig_neg_5p <- makeTxDbFromGRanges(gr_contig_neg_5p)
-txdb_contig_neg_5p_inv <- makeTxDbFromGRanges(invertStrand(gr_contig_neg_5p))
+txdb_contig_neg_5p <- makeTxDbSafe(gr_contig_neg_5p)
+txdb_contig_neg_5p_inv <- makeTxDbSafe(invertStrand(gr_contig_neg_5p))
 
 
 ## Overlapping Genes - 5'
@@ -111,7 +111,7 @@ gr_multigene_5p <- GRanges(
   exon_id=c(NA, NA, "exon_1",
             NA, NA, "exon_2"))
 
-txdb_multigene_5p <- makeTxDbFromGRanges(gr_multigene_5p)
+txdb_multigene_5p <- makeTxDbSafe(gr_multigene_5p)
 
 ########
 ## Tests

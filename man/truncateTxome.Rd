@@ -82,4 +82,5 @@ txdb_w500
 ## last 100 nts per tx
 txdb_w100 <- truncate3primeTxome(txdb, maxTxLength=100)
 txdb_w100
+
 }

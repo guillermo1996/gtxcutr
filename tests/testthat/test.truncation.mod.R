@@ -19,8 +19,8 @@ single_exon_gr <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1"),
   exon_id=c(NA, NA, "exon_1"))
 
-txdb_single_exons <- makeTxDbFromGRanges(single_exon_gr)
-txdb_single_exons_neg <- makeTxDbFromGRanges(invertStrand(single_exon_gr))
+txdb_single_exons <- makeTxDbSafe(single_exon_gr)
+txdb_single_exons_neg <- makeTxDbSafe(invertStrand(single_exon_gr))
 
 ## Triple Exon Gene
 triple_exon_gr <- GRanges(
@@ -35,8 +35,8 @@ triple_exon_gr <- GRanges(
   tx_id=c(NA, "tx_1", "tx_1", "tx_1", "tx_1"),
   exon_id=c(NA, NA, "exon_1", "exon_2", "exon_3"))
 
-txdb_triple_exons <- makeTxDbFromGRanges(triple_exon_gr)
-txdb_triple_exons_neg <- makeTxDbFromGRanges(invertStrand(triple_exon_gr))
+txdb_triple_exons <- makeTxDbSafe(triple_exon_gr)
+txdb_triple_exons_neg <- makeTxDbSafe(invertStrand(triple_exon_gr))
 
 
 ########

@@ -90,9 +90,16 @@ setMethod("truncate5primeTxome", "TxDb", function(txdb,
 #' ## last 100 nts per tx
 #' txdb_w100 <- truncate3primeTxome(txdb, maxTxLength=100)
 #' txdb_w100
-#' @export
-
+#' 
+#' @importFrom methods slot
+#' @importFrom GenomicRanges GRangesList mcols findOverlaps
+#' @importFrom GenomicFeatures exonsBy
+#' @importFrom BiocParallel bplapply bpparam
+#' @importFrom AnnotationDbi select taxonomyId
+#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom methods setMethod
 #' @importFrom BiocParallel bpparam
+#' @export
 setMethod("truncateTxome", "TxDb", function(txdb,
                                             maxTxLength = 500,
                                             txEnd = "3prime",
@@ -110,7 +117,7 @@ setMethod("truncateTxome", "TxDb", function(txdb,
   ############################################################################
   # Split exons by transcripts and create a mapping dictionary from transcript_id
   # to gene_id
-  grlExons <- exonsBy(txdb, use.names=TRUE)
+  grlExons <- GenomicFeatures::exonsBy(txdb, use.names=TRUE)
   dfTxGene <- AnnotationDbi::select(txdb, keys=names(grlExons), keytype="TXNAME", columns="GENEID")
   mapTxToGene <- setNames(dfTxGene$GENEID, dfTxGene$TXNAME)
   
@@ -118,7 +125,7 @@ setMethod("truncateTxome", "TxDb", function(txdb,
   # Transcript truncation
   message("Truncating transcripts...")
   clipped <- .clipTranscript(grlExons, maxTxLength = maxTxLength, txEnd = txEnd, BPPARAM = BPPARAM)
-  seqinfo(clipped) <- seqinfo(grlExons)
+  GenomicRanges::seqinfo(clipped) <- GenomicRanges::seqinfo(grlExons)
   
   ## GR: Split the exons by transcript to facilitate finding overlaps
   grlC_clipped <- S4Vectors::split(clipped, mcols(clipped)["transcript_id"])
@@ -135,9 +142,9 @@ setMethod("truncateTxome", "TxDb", function(txdb,
   ## coordinates but their width is less than `maxTxLenght`, then they are
   ## not removed for overlaps (they will probably trigger the merge table step
   ## later on).
-  overlaps <- findOverlaps(grlC_clipped, minoverlap=maxTxLength,
-                           ignore.strand=FALSE,
-                           drop.self=TRUE, drop.redundant=TRUE)
+  overlaps <- GenomicRanges::findOverlaps(grlC_clipped, minoverlap=maxTxLength,
+                                          ignore.strand=FALSE,
+                                          drop.self=TRUE, drop.redundant=TRUE)
   grlC_clipped_names <- names(grlC_clipped)
   
   ## GR: Ensure that overlaps are from the same gene
@@ -209,9 +216,9 @@ setMethod("truncateTxome", "TxDb", function(txdb,
     value=c("gtxcutr", maxTxLength)
   )
   
-  makeTxDbFromGRanges(c(grGenes, grTxs, grExons),
-                      taxonomyId = taxonomyId(txdb),
-                      metadata = dfMetadata)
+  makeTxDbSafe(c(grGenes, grTxs, grExons),
+               taxonomyId = taxonomyId(txdb),
+               metadata = dfMetadata)
 })
 
 
@@ -230,6 +237,10 @@ setMethod("truncateTxome", "TxDb", function(txdb,
 #'
 #' @importFrom methods slot
 #' @importFrom magrittr %>% %<>%
+#' @importFrom forcats fct_inorder
+#' @importFrom tibble as_tibble
+#' @importFrom BiocParallel bplapply
+#' @importFrom GenomicRanges GRanges
 #' 
 .clipTranscript <- function(grlExons, maxTxLength, txEnd, BPPARAM){
   # GR: Merge all exons into a single GRanges while adding the transcript ID
@@ -324,7 +335,6 @@ setMethod("truncateTxome", "TxDb", function(txdb,
 #'   \code{transcript_id} fields.
 #'
 #' @return \code{tibble} with inconsistent transcripts removed
-#'
 .pruneInconsistentStrand <- function(exons_df){
   # GR: Group by transcripts and filter based on the number of distinct strands.
   multistrand_tx <- exons_df %>% 
@@ -347,7 +357,6 @@ setMethod("truncateTxome", "TxDb", function(txdb,
 #'
 #' @return \code{GRanges} with transcripts defined from the truncated exons
 #'
-#' @importFrom methods slot
 #' @importFrom GenomicRanges GRanges
 .generateTranscriptRanges <- function(grExons){
   grTxs <- grExons %>% 
@@ -360,7 +369,7 @@ setMethod("truncateTxome", "TxDb", function(txdb,
     GRanges() %>% 
     sort()
   
-  seqinfo(grTxs) <- seqinfo(grExons)
+  GenomicRanges::seqinfo(grTxs) <- GenomicRanges::seqinfo(grExons)
   return(grTxs)
 }
 
@@ -370,7 +379,6 @@ setMethod("truncateTxome", "TxDb", function(txdb,
 #'
 #' @return \code{GRanges} with genes defined from the truncated exons
 #'
-#' @importFrom methods slot
 #' @importFrom GenomicRanges GRanges
 .generateGeneRanges <- function(grExons){
   grGenes <- grExons %>% 
@@ -383,6 +391,6 @@ setMethod("truncateTxome", "TxDb", function(txdb,
     GRanges() %>% 
     sort()
   
-  seqinfo(grGenes) <- seqinfo(grExons)
+  GenomicRanges::seqinfo(grGenes) <- GenomicRanges::seqinfo(grExons)
   return(grGenes)
 }
